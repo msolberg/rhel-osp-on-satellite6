@@ -77,6 +77,7 @@ In order to kickstart systems from the Satellite server, a kickstart tree needs 
 To perform the same actions from the command line:
 
 ```
+hammer ...
 ```
 
 ### Sync Content from the Red Hat Network
@@ -147,11 +148,13 @@ Then, upload the resulting module to the OpenStack Configuration product.
 
 *Note:  We also need to get the openstack-puppet-modules modules in there.  Here's how I did it:*
 
+```
 # git clone https://github.com/msolberg/openstack-puppet-modules -b satellite6_compat
 # rm -rf openstack-puppet-modules/stdlib # Something is wrong with this one
 # mkdir -p /openstack-modules
 # pulp-puppet-module-builder --output-dir=/openstack-modules openstack-puppet-modules
 # hammer repository upload-content --name='Puppet Modules'  --path=/openstack-modules/ --organization='Default Organization' --product='OpenStack Configuration'
+```
 
 *Still need to fix the metadata for stdlib - something isn't coming through on the git clone*
 
