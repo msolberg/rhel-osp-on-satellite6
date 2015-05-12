@@ -147,25 +147,13 @@ Then, upload the resulting module to the OpenStack Configuration product.
 
 *Note:  We also need to get the openstack-puppet-modules modules in there.  Here's how I did it:*
 
-```
-rpm -ivh /var/lib/pulp/published/yum/master/yum_distributor/Default_Organization-Red_Hat_OpenStack-Red_Hat_OpenStack_6_0_for_RHEL_7_RPMs_x86_64_7Server/*/openstack-puppet-modules-2014.2.15-3.el7ost.noarch.rpm
-mkdir /openstack-modules
-cd /usr/share/openstack-puppet/modules
-pulp-puppet-module-builder --output-dir=/openstack-modules
-cd /openstack-modules
-hammer repository upload-content --name='Puppet Modules' --organization='Default Organization' --product='OpenStack Configuration' --path .
-```
+# git clone https://github.com/msolberg/openstack-puppet-modules -b satellite6_compat
+# rm -rf openstack-puppet-modules/stdlib # Something is wrong with this one
+# mkdir -p /openstack-modules
+# pulp-puppet-module-builder --output-dir=/openstack-modules openstack-puppet-modules
+# hammer repository upload-content --name='Puppet Modules'  --path=/openstack-modules/ --organization='Default Organization' --product='OpenStack Configuration'
 
-The following are missing metadata:
-
-common
-nagios
-puppet
-sysctl
-vlan
-
-We'll need to create metadata for them so that they can be uploaded to Satellite.
-
+*Still need to fix the metadata for stdlib - something isn't coming through on the git clone*
 
 ### Creating the OpenStack Content View
 
