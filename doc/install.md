@@ -95,11 +95,9 @@ Sync the following repositories:
 * "RHN Tools for Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server"
 * "Red Hat OpenStack 6.0 for RHEL 7 RPMs x86_64 7Server"
 
-### Import the Quickstack Puppet module
+### Import the OpenStack Puppet modules
 
-Use the following steps to download and install the Quickstack puppet module:
-
-First we need to create a Product for our Puppet modules:
+Create a Product for our Puppet modules:
 
 Navigate to Content > Products > New Product
 
@@ -146,17 +144,14 @@ Then, upload the resulting module to the OpenStack Configuration product.
 # hammer repository upload-content --name='Puppet Modules'  --path=/modules/redhat-quickstack-3.0.24.tar.gz --organization='Default Organization' --product='OpenStack Configuration'
 ```
 
-*Note:  We also need to get the openstack-puppet-modules modules in there.  Here's how I did it:*
+Next, upload the supporting OpenStack puppet modules from StackForge:
 
 ```
 # git clone https://github.com/msolberg/openstack-puppet-modules -b satellite6_compat
-# rm -rf openstack-puppet-modules/stdlib # Something is wrong with this one
 # mkdir -p /openstack-modules
 # pulp-puppet-module-builder --output-dir=/openstack-modules openstack-puppet-modules
 # hammer repository upload-content --name='Puppet Modules'  --path=/openstack-modules/ --organization='Default Organization' --product='OpenStack Configuration'
 ```
-
-*Still need to fix the metadata for stdlib - something isn't coming through on the git clone*
 
 ### Creating the OpenStack Content View
 
@@ -191,11 +186,14 @@ Add the Quickstack puppet module to the content view:
 3. Click "Select a Version" next to the module named "quickstack".
 4. Select the "Use Latest" version.
 
+Follow the same procedure to import each of the StackForge puppet
+modules to the content view.  Use the "add_puppet_modules.sh" script
+to expedite the process.
+
+TODO:  This should all be scripted - there are 48 of these modules!
+
 Publish the version of the content view:
 
 1. Click "Publish New Version"
 2. Optionally enter a comment in the description field.
 3. Click "Publish"
-
-
-
