@@ -32,8 +32,8 @@ In the Foreman UI, use the following steps to create two lifecycle environments 
 Or from the commandline:
 
 ```
-hammer lifecycle-environment create --organization='Default Organization' --name=Devel --
-prior=Library
+hammer lifecycle-environment create --organization='Default Organization' --name=Development --prior=Library
+hammer lifecycle-environment create --organization='Default Organization' --name=Production --prior=Development
 ```
 
 ### Activate Your Red Hat Satellite
@@ -76,9 +76,7 @@ In order to kickstart systems from the Satellite server, a kickstart tree needs 
 
 To perform the same actions from the command line:
 
-```
-hammer ...
-```
+TODO: Add CLI Instructions
 
 ### Sync Content from the Red Hat Network
 
@@ -197,3 +195,40 @@ Publish the version of the content view:
 1. Click "Publish New Version"
 2. Optionally enter a comment in the description field.
 3. Click "Publish"
+
+TODO:  Add CLI instructions.
+
+### Promote the OpenStack Content View
+
+To promote the content view to the Development Lifecycle Environment, simply:
+
+1. Click "Promote" beside “Version 1”.
+2. Select the "Development" environment.
+3. Click "Promote Version".
+
+From the CLI:
+
+```
+hammer content-view version promote --version=1 --environment=Development
+```
+
+### Create an Activation Key
+
+An activation key allows you to associate systems with a Lifecycle
+and Content View during registration.
+
+To create an Activation Key:
+
+1. Navigate to Content > Activation Keys.
+2. Click “New Activation Key” in the upper right hand corner
+3. Give the name of the activation key “OpenStack_Dev”
+4. Select the “Development” environment.
+5. Select the "OpenStack" Content View from the drop down.
+6. Click Save
+7. Click Subscriptions and then click "Add"
+8. Select the desired Red Hat subscription which includes access to the “Red Hat Enterprise Linux Server OpenStack Platform” Product.
+9. Select the "OpenStack Configuration" Product.
+10. Click "Add Selected"
+
+TODO: Add CLI instructions.
+
