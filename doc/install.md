@@ -27,13 +27,8 @@ with customizations to manage OpenStack using Satellite.
 This reference architecture uses two upstream Puppet modules to deploy
 Red Hat Enterprise Linux OpenStack Platform. 
 
-1. OpenStack Puppet Modules
-- https://github.com/redhat-openstack/openstack-puppet-modules
-- Puppet modules shared between Packstack and Foreman.
-
-2. Astapor
-- https://github.com/redhat-openstack/astapor
-- Configurations to set up foreman quickly, install openstack puppet modules and rapidly provision openstack compute & controller nodes with puppet.
+1. OpenStack Puppet Modules: Puppet modules shared between Packstack and Foreman (https://github.com/redhat-openstack/openstack-puppet-modules).
+2. Astapor: Configurations to set up foreman quickly, install openstack puppet modules and rapidly provision openstack compute & controller nodes with puppet (https://github.com/redhat-openstack/astapor).
 
 Though these modules are developed upstream by Red Hat and the Open
 Source community the modules themselves are not directly supported by
@@ -42,29 +37,17 @@ reference architecture.
 
 ## Workflow 
 
-**Do we want to add the CICD workflow description here?**
+Do we want to add the CICD workflow description here?
 
 ## Satellite 6 Installation
 
-Install Satellite 6.1 or greater as per the Satellite 6 Installation Guide
-(https://access.redhat.com/documentation/en-US/Red_Hat_Satellite/6.0/html/Installation_Guide/index.html). 
-
-Before executing `yum install katello` make the changes described in
-the following knowledge base article (https://access.redhat.com/solutions/1450693). 
+Install Satellite 6.1 or greater as per the Satellite 6 Installation Guide (https://access.redhat.com/documentation/en-US/Red_Hat_Satellite/6.0/html/Installation_Guide/index.html). Before executing `yum install katello` make the changes described in the following knowledge base article (https://access.redhat.com/solutions/1450693). 
 
 ## Preparing Content for OpenStack Deployment
 
 ### Create Lifecycle Environments
 
-We will use following Life Cycle pattern: 
-
-~~~
- Library --> Development --> Production 
-~~~
-
-The following steps create the above. By default, the Production
-environment will have it's "prior" variable set to Testing so we will
-delete production and recreate it. 
+We will use a Life Cycle pattern which promomotes from Library to Development to Production. By default, the Production environment will have it's "prior" variable set to Testing so we will delete production and recreate it. 
 
 In the Foreman UI, use the following steps to create two lifecycle environments for our OpenStack deployments.
 
