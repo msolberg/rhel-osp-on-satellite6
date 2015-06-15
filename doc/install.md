@@ -11,29 +11,78 @@ This guide will present each step with instructions for both the
 Graphical User interface and the Command Line interface where
 possible.
 
+## Support Statement
+
+This reference architecture describes a supported Red Hat Enterprise
+Linux OpenStack Platform 7 installation and a supported Satellite 6.1 
+installation. As per the support statements for both of these
+products, the resulting OpenStack is supported as well as Satellite 6,
+but the Puppet code itself used to deploy OpenStack is not directly
+supported. The intention of this reference architecture is provide an 
+example for an organization that wishes to maintain its own Puppet
+with customizations to manage OpenStack using Satellite. 
+
+## Puppet Modules
+
+This reference architecture uses two upstream Puppet modules to deploy
+Red Hat Enterprise Linux OpenStack Platform. 
+
+1. OpenStack Puppet Modules: Puppet modules shared between Packstack and Foreman (https://github.com/redhat-openstack/openstack-puppet-modules).
+2. Astapor: Configurations to set up foreman quickly, install openstack puppet modules and rapidly provision openstack compute & controller nodes with puppet (https://github.com/redhat-openstack/astapor).
+
+Though these modules are developed upstream by Red Hat and the Open
+Source community the modules themselves are not directly supported by
+Red Hat. For more infomation see the Support Statement of this
+reference architecture. 
+
+## Workflow 
+
+Do we want to add the CICD workflow description here?
+
 ## Satellite 6 Installation
 
-Install Satellite 6 as per the [Satellite 6 Installation Guide (https://access.redhat.com/documentation/en-US/Red_Hat_Satellite/6.0/html/Installation_Guide/index.html)].
+Install Satellite 6.1 or greater as per the Satellite 6 Installation Guide (https://access.redhat.com/documentation/en-US/Red_Hat_Satellite/6.0/html/Installation_Guide/index.html). Before executing `yum install katello` make the changes described in the following knowledge base article (https://access.redhat.com/solutions/1450693). 
 
 ## Preparing Content for OpenStack Deployment
 
 ### Create Lifecycle Environments
 
+We will use a Life Cycle pattern which promomotes from Library to Development to Production. By default, the Production environment will have it's "prior" variable set to Testing so we will delete production and recreate it. 
+
 In the Foreman UI, use the following steps to create two lifecycle environments for our OpenStack deployments.
 
 1. Navigate to Content > Lifecycle Environments
-2. Click “+” Beside the "Library" environment
-3. Enter “Development” for the name.
-4. Click submit
-5. Click the “+” next to Development
-6. Enter “Production” for the name.
-7. Click submit.
+2. In the third table click "Production"
+3. Click "Remove Environment"
+4. Click “+ New Environment Path” above the "Library" environment
+5. Enter “Development” for the name.
+6. Click Save
+7. Click the “+” above the "Development" environment
+8. Enter “Production” for the name.
+9. Click Save
 
 Or from the commandline:
 
 ```
+hammer lifecycle-environment delete --organization='Default Organization' --name=Production
 hammer lifecycle-environment create --organization='Default Organization' --name=Development --prior=Library
 hammer lifecycle-environment create --organization='Default Organization' --name=Production --prior=Development
+```
+
+Optionally, delete the testing environment using a variation of the commands above. 
+
+Verify that the environment is set up as desired with:
+
+```
+[root@foreman ~]# hammer lifecycle-environment list --organization='Default Organization'
+---|-------------|------------
+ID | NAME        | PRIOR      
+---|-------------|------------
+6  | Production  | Development
+1  | Library     |            
+5  | Development | Library    
+---|-------------|------------
+[root@foreman ~]# 
 ```
 
 ### Activate Your Red Hat Satellite
@@ -49,7 +98,7 @@ To upload your manifest, simply login to your Satellite server and:
 2. Click “Import Manifest” at the top right
 3. Browse to locate your manifest and click upload
 
-From the cli:
+From the command line: 
 
 ```
 hammer subscription upload file=/path/to/manifest.zip
@@ -60,23 +109,30 @@ hammer subscription upload file=/path/to/manifest.zip
 The following steps will sync the required software from the Red Hat
 Network to your Red Hat Satellite.
 
-1. Navigate to Content > Repositories > Red Hat Repositories.
-2. Expand the “Red Hat Enterprise Linux Server” Product.
-3. Select the “Red Hat Enterprise Linux 7 Server (RPMs)” repository set underneath the product. (This may take a few moments).
-4. Select the "Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server" repository.
-5. Select the "RHN Tools for Red Hat Enterprise Linux" Product.
-6. Select the "RHN Tools for Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server" repository.
-7. Select the "Red Hat OpenStack" Product.
-8. Select the "Red Hat OpenStack 6.0 for RHEL 7 RPMs x86_64 7Server" repository.
+1. Navigate to Content > Red Hat Repositories.
+2. Expand the “Red Hat Enterprise Linux Server” Product. 
+3. Select the “Red Hat Enterprise Linux 7 Server (RPMs)” Repository Set underneath the Product. (This may take a few moments). Within that Repository Set:
+   a. Select the "Red Hat Enterprise Linux 7 Server RPMs x86_64 7.1" repository. 
+   b. Select the "Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server" repository.
+4. Select the "RHN Tools for Red Hat Enterprise Linux" Repository Set. Within that Repository Set:
+   a. Select the "RHN Tools for Red Hat Enterprise Linux 7 Server RPMs x86_64 7.1" repository.
+   b. Select the "RHN Tools for Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server" repository.
+5. Select the "Red Hat OpenStack" Product.
+6. Select the "Red Hat OpenStack 6.0 for RHEL 7 (RPMs)" Repository Set. Within that Repository Set:
+   a. Select the "Red Hat OpenStack 6.0 for RHEL 7 RPMs x86_64 7.1" repository. 
+   b. Select the "Red Hat OpenStack 6.0 for RHEL 7 RPMs x86_64 7Server" repository. 
 
-In order to kickstart systems from the Satellite server, a kickstart tree needs to be synced. On the same page:
+In order to kickstart systems from the Satellite server, a kickstart tree needs to be synced. 
 
-1. Select the “Red Hat Enterprise Linux 7 Server (Kickstart)” repository set unerneath the same product as above.
-2. Select the desired kickstart tree “Red Hat Enterprise Linux 7 Server Kickstart x86_64 7.1"
+1. On the same page (Content > Red Hat Repositories) click the "Kickstarts" tab. 
+2. Select the "Red Hat Enterprise Linux Server" Product. 
+3. Select the "Red Hat Enterprise Linux 7 Server (Kickstart)" Repository Set.  
+4. Select the desired kickstart tree "Red Hat Enterprise Linux 7 Server Kickstart x86_64 7.1"
 
 To perform the same actions from the command line:
 
 TODO: Add CLI Instructions
+
 
 ### Sync Content from the Red Hat Network
 
@@ -97,29 +153,32 @@ Sync the following repositories:
 
 Create a Product for our Puppet modules:
 
-Navigate to Content > Products > New Product
+1. Navigate to Content > Products 
+2. Click "+ New Product"
 
 Then add a new product:
 
-1. For name, enter 'OpenStack Configuration'
+1. For name, enter "OpenStack Configuration"
 2. Click Save
 
-From the cli:
+From the command line: 
 
 ```
 hammer product create --organization='Default Organization' --name="OpenStack Configuration"
 ```
 
-Next create a repository to house the puppet modules:
+Next create a repository to house the Puppet modules:
 
-Navigate to Content > Products > Click on the “Custom Configuration” product. Click “Create Repository” on the left.
+1. Navigate to Content > Products 
+2. Click the "OpenStack Configuration" Product
+3. Click “Create Repository” on the right. 
 
 And then add a custom repository:
 
-1. Click 'New Repository' in the upper right hand corner.
-2. For name, enter 'Puppet Modules'
-3. Select 'puppet' for Type
-5. Click save.
+1. Click "New Repository" in the upper right hand corner.
+2. For name, enter "Puppet Modules"
+3. Select "puppet" for Type
+5. Click Save.
 
 From the CLI:
 
@@ -132,23 +191,23 @@ Next, import the quickstack puppet module from github.
 Use the `pulp-puppet-module-builder` utility from the CLI to create an uploadable format from the git repository:
 
 ```
-# mkdir /modules
-# pulp-puppet-module-builder --output-dir=/modules --url=https://github.com/msolberg/astapor/ -p astapor/puppet/modules/quickstack --branch=satellite6_compat
+mkdir /modules
+pulp-puppet-module-builder --output-dir=/modules --url=https://github.com/msolberg/astapor/ -p astapor/puppet/modules/quickstack --branch=satellite6_compat
 ```
 
 Then, upload the resulting module to the OpenStack Configuration product.
 
 ```
-# hammer repository upload-content --name='Puppet Modules'  --path=/modules/redhat-quickstack-3.0.24.tar.gz --organization='Default Organization' --product='OpenStack Configuration'
+hammer repository upload-content --name='Puppet Modules'  --path=/modules/redhat-quickstack-3.0.24.tar.gz --organization='Default Organization' --product='OpenStack Configuration'
 ```
 
 Next, upload the supporting OpenStack puppet modules from StackForge:
 
 ```
-# git clone https://github.com/msolberg/openstack-puppet-modules -b satellite6_compat
-# mkdir -p /openstack-modules
-# pulp-puppet-module-builder --output-dir=/openstack-modules openstack-puppet-modules
-# hammer repository upload-content --name='Puppet Modules'  --path=/openstack-modules/ --organization='Default Organization' --product='OpenStack Configuration'
+git clone https://github.com/msolberg/openstack-puppet-modules -b satellite6_compat
+mkdir -p /openstack-modules
+pulp-puppet-module-builder --output-dir=/openstack-modules openstack-puppet-modules
+hammer repository upload-content --name='Puppet Modules'  --path=/openstack-modules/ --organization='Default Organization' --product='OpenStack Configuration'
 ```
 
 ### Creating the OpenStack Content View
@@ -171,16 +230,24 @@ Then, add the required RPM repositories to the content view:
 1. Navigate to Content > Content Views
 2. Click on “OpenStack”
 3. Click “Yum Content” and in the submenu click “Repositories”
-4. Add the following repositories to the Content View:
+4. Select the following repositories to the Content View:
   * Red Hat Enterprise Linux 7 Server Kickstart x86_64 7.1
   * Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server
   * Red Hat OpenStack 6.0 for RHEL 7 RPMs x86_64 7Server
   * RHN Tools for Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server
+5. Click "+ Add Repositories"
+
+~~~
+Why not the 7.1 versions? listed below? (jfulton)
+- RHN Tools for Red Hat Enterprise Linux 7 Server RPMs x86_64 7.1 
+- Red Hat OpenStack 6.0 for RHEL 7 RPMs x86_64 7.1 
+- Red Hat Enterprise Linux 7 Server RPMs x86_64 7.1 
+~~~
 
 Add the Quickstack puppet module to the content view:
 
 1. Click the “Puppet Modules" tab.
-2. Click "Add New Module".
+2. Click "+ Add New Module".
 3. Click "Select a Version" next to the module named "quickstack".
 4. Select the "Use Latest" version.
 
@@ -194,7 +261,7 @@ Publish the version of the content view:
 
 1. Click "Publish New Version"
 2. Optionally enter a comment in the description field.
-3. Click "Publish"
+3. Click "Save"
 
 TODO:  Add CLI instructions.
 
@@ -226,7 +293,7 @@ To create an Activation Key:
 5. Select the "OpenStack" Content View from the drop down.
 6. Click Save
 7. Click Subscriptions and then click "Add"
-8. Select the desired Red Hat subscription which includes access to the “Red Hat Enterprise Linux Server OpenStack Platform” Product.
+8. Select the desired Red Hat subscriptions which include access to the “Red Hat Enterprise Linux Server OpenStack Platform” Product.
 9. Select the "OpenStack Configuration" Product.
 10. Click "Add Selected"
 
@@ -236,7 +303,7 @@ TODO: Add CLI instructions.
 
 ### Associate iPXE Template
 
-TODO: I didn't have to do this in my environment.  Maybe this is fixed in 6.1?
+TODO: msolberg and jfulton didn't have to do this.  Maybe this is fixed in 6.1?
 
 The Satellite 6 Bootdisk uses iPXE to simulate a PXE environment and
 boot the machine. We need to configure the iPXE templates for our
@@ -282,7 +349,8 @@ Create the Management domain:
 3. Enter "OpenStack Management" for the description.
 4. Click on the "Locations" tab.
 5. Select the "Default Location".
-6. Click Submit.
+6. Click on the "Organizations" tab and verify that the "Default Organization" is selected organization. 
+7. Click Submit.
 
 Create the External domain:
 1. Navigate to: Infrastructure > Domains > New Domain
@@ -290,7 +358,8 @@ Create the External domain:
 3. Enter "OpenStack External" for the description.
 4. Click on the "Locations" tab.
 5. Select the "Default Location".
-6. Click Submit.
+6. Click on the "Organizations" tab and verify that the "Default Organization" is selected organization. 
+7. Click Submit.
 
 From the CLI:
 
@@ -313,7 +382,8 @@ TODO:  Shouldn't we have a DNS capsule provisioned for this?
 ### Creating the OpenStack Subnets
 
 A Subnet in Satellite 6 is the definition of your actual network
-subnet.  We'll be creating two subnets, one for the management network (10.1.1.0/24) and one for the external network (192.168.1.0/24).
+subnet.  We'll be creating two subnets, one for the management network
+(10.1.1.0/24) and one for the external network (192.168.1.0/24). 
 
 To create the networks, navigate to
 
@@ -332,7 +402,9 @@ Create the Management Network by configuring the general subnet details:
 9. Select DHCP as the default boot mode for interfaces assigned to the subnet from the Boot mode list. 
 10. Click the Domains tab.
 11. Select "mgt.example.com" as the domain for this subnet.
-12. Click "Submit" to create the subnet.
+12. Click on the "Locations" tab.
+13. Select the "Default Location".
+14. Click "Submit" to create the subnet.
 
 Create the External Network with the following settings
 
@@ -347,7 +419,9 @@ Create the External Network with the following settings
 9. Select DHCP as the default boot mode for interfaces assigned to the subnet from the Boot mode list. 
 10. Click the Domains tab.
 11. Select "example.com" as the domain for this subnet.
-12. Click "Submit" to create the subnet.
+12. Click on the "Locations" tab.
+13. Select the "Default Location".
+14. Click "Submit" to create the subnet.
 
 From the CLI:
 
@@ -378,7 +452,8 @@ Create the Controller Host Group:
 2. Enter "OpenStack Controller" for the Name.
 3. Select "Development" for the Lifecycle Environemnt.
 4. Select "OpenStack" for the Content View.
-5. Select the hostname for your Satellite server for the "Content Source", "Puppet CA", and "Puppet Master".
+5. Click "Reset Puppet Environment to match selected Content View" next to Puppet Environment. 
+6. Select the hostname for your Satellite server for the "Content Source", "Puppet CA", and "Puppet Master".
 
 1. Click on the "Puppet Classes" tab.
 2. Search for "quickstack" in the list of Available Classes.
@@ -403,6 +478,7 @@ Create the Controller Host Group:
 1. Click on the "Network" tab.
 2. Select the Management domain (e.g. "mgt.example.com") for Domain.
 3. Select "OpenStack Management" for the Subnet.
+4. The Realm field can be left blank 
 
 1. Click on the "Operating System" tab.
 2. Select "x86_64" for the Architecture.
@@ -427,7 +503,8 @@ Create the Compute Host Group:
 2. Enter "OpenStack Compute" for the Name.
 3. Select "Development" for the Lifecycle Environemnt.
 4. Select "OpenStack" for the Content View.
-5. Select the hostname for your Satellite server for the "Content Source", "Puppet CA", and "Puppet Master".
+5. Click "Reset Puppet Environment to match selected Content View" next to Puppet Environment. 
+6. Select the hostname for your Satellite server for the "Content Source", "Puppet CA", and "Puppet Master".
 
 1. Click on the "Puppet Classes" tab.
 2. Search for "quickstack" in the list of Available Classes.
@@ -437,6 +514,7 @@ Create the Compute Host Group:
 1. Click on the "Network" tab.
 2. Select the Management domain (e.g. "mgt.example.com") for Domain.
 3. Select "OpenStack Management" for the Subnet.
+4. The Realm field can be left blank 
 
 1. Click on the "Operating System" tab.
 2. Select "x86_64" for the Architecture.
