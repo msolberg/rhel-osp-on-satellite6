@@ -112,14 +112,13 @@ Network to your Red Hat Satellite.
 1. Navigate to Content > Red Hat Repositories.
 2. Expand the “Red Hat Enterprise Linux Server” Product. 
 3. Select the “Red Hat Enterprise Linux 7 Server (RPMs)” Repository Set underneath the Product. (This may take a few moments). Within that Repository Set:
-   a. Select the "Red Hat Enterprise Linux 7 Server RPMs x86_64 7.1" repository. 
    b. Select the "Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server" repository.
 4. Select the "RHN Tools for Red Hat Enterprise Linux" Repository Set. Within that Repository Set:
-   a. Select the "RHN Tools for Red Hat Enterprise Linux 7 Server RPMs x86_64 7.1" repository.
    b. Select the "RHN Tools for Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server" repository.
+5. Select the "Red Hat Enterprise Linux 7 Server - RH Common (RPMs)"
+   a. Select the "Red Hat Enterprise Linux 7 Server - RH Common RPMs x86_64 7Server" repository.
 5. Select the "Red Hat OpenStack" Product.
 6. Select the "Red Hat OpenStack 6.0 for RHEL 7 (RPMs)" Repository Set. Within that Repository Set:
-   a. Select the "Red Hat OpenStack 6.0 for RHEL 7 RPMs x86_64 7.1" repository. 
    b. Select the "Red Hat OpenStack 6.0 for RHEL 7 RPMs x86_64 7Server" repository. 
 
 In order to kickstart systems from the Satellite server, a kickstart tree needs to be synced. 
@@ -148,6 +147,7 @@ Sync the following repositories:
 * "Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server"
 * "RHN Tools for Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server"
 * "Red Hat OpenStack 6.0 for RHEL 7 RPMs x86_64 7Server"
+* "Red Hat Enterprise Linux 7 Server - RH Common RPMs x86_64 7Server"
 
 ### Import the OpenStack Puppet modules
 
@@ -235,14 +235,8 @@ Then, add the required RPM repositories to the content view:
   * Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server
   * Red Hat OpenStack 6.0 for RHEL 7 RPMs x86_64 7Server
   * RHN Tools for Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server
+  * Red Hat Enterprise Linux 7 Server - RH Common RPMs x86_64 7Server
 5. Click "+ Add Repositories"
-
-~~~
-Why not the 7.1 versions? listed below? (jfulton)
-- RHN Tools for Red Hat Enterprise Linux 7 Server RPMs x86_64 7.1 
-- Red Hat OpenStack 6.0 for RHEL 7 RPMs x86_64 7.1 
-- Red Hat Enterprise Linux 7 Server RPMs x86_64 7.1 
-~~~
 
 Add the Quickstack puppet module to the content view:
 
