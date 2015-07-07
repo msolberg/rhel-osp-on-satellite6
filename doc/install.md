@@ -47,13 +47,11 @@ Install Satellite 6.1 or greater as per the Satellite 6 Installation Guide (http
 
 ### Create Lifecycle Environments
 
-We will use a Life Cycle pattern which promomotes from Library to Development to Production. By default, the Production environment will have it's "prior" variable set to Testing so we will delete production and recreate it. 
+We will use a Life Cycle pattern which promomotes from Library to Development to Production.
 
 In the Foreman UI, use the following steps to create two lifecycle environments for our OpenStack deployments.
 
 1. Navigate to Content > Lifecycle Environments
-2. In the third table click "Production"
-3. Click "Remove Environment"
 4. Click “+ New Environment Path” above the "Library" environment
 5. Enter “Development” for the name.
 6. Click Save
@@ -64,25 +62,27 @@ In the Foreman UI, use the following steps to create two lifecycle environments 
 Or from the commandline:
 
 ```
-hammer lifecycle-environment delete --organization='Default Organization' --name=Production
 hammer lifecycle-environment create --organization='Default Organization' --name=Development --prior=Library
 hammer lifecycle-environment create --organization='Default Organization' --name=Production --prior=Development
 ```
 
-Optionally, delete the testing environment using a variation of the commands above. 
+> **Pro-tip** 
+> The hammer CLI will prompt you for your username and password each
+> time you run a command.  Alternatively, you can copy
+> /etc/hammer/cli_config.hml to ~/.hammer/cli_config.yml and specify
+> a username and password there.
 
 Verify that the environment is set up as desired with:
 
 ```
-[root@foreman ~]# hammer lifecycle-environment list --organization='Default Organization'
+# hammer lifecycle-environment list --organization='Default Organization'
 ---|-------------|------------
 ID | NAME        | PRIOR      
 ---|-------------|------------
-6  | Production  | Development
+3  | Production  | Development
 1  | Library     |            
-5  | Development | Library    
+2  | Development | Library    
 ---|-------------|------------
-[root@foreman ~]# 
 ```
 
 ### Activate Your Red Hat Satellite
@@ -104,6 +104,15 @@ From the command line:
 hammer subscription upload file=/path/to/manifest.zip
 ```
 
+Verify that the manifest was uploaded with:
+
+```
+hammer subscription list --organization "Default Organization"
+```
+
+You should see output which is consistent with the uploaded manifest
+file.
+
 ### Enable Content from Red Hat Network
 
 The following steps will sync the required software from the Red Hat
@@ -113,8 +122,6 @@ Network to your Red Hat Satellite.
 2. Expand the “Red Hat Enterprise Linux Server” Product. 
 3. Select the “Red Hat Enterprise Linux 7 Server (RPMs)” Repository Set underneath the Product. (This may take a few moments). Within that Repository Set:
    b. Select the "Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server" repository.
-4. Select the "RHN Tools for Red Hat Enterprise Linux" Repository Set. Within that Repository Set:
-   b. Select the "RHN Tools for Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server" repository.
 5. Select the "Red Hat Enterprise Linux 7 Server - RH Common (RPMs)"
    a. Select the "Red Hat Enterprise Linux 7 Server - RH Common RPMs x86_64 7Server" repository.
 5. Select the "Red Hat OpenStack" Product.
@@ -130,8 +137,25 @@ In order to kickstart systems from the Satellite server, a kickstart tree needs 
 
 To perform the same actions from the command line:
 
-TODO: Add CLI Instructions
+```
+hammer repository-set enable --product "Red Hat Enterprise Linux Server" --organization "Default Organization" --name "Red Hat Enterprise Linux 7 Server (RPMs)" --releasever=7Server --basearch=x86_64
+hammer repository-set enable --product "Red Hat Enterprise Linux Server" --organization "Default Organization" --name "Red Hat Enterprise Linux 7 Server - RH Common (RPMs)" --releasever=7Server --basearch=x86_64
+hammer repository-set enable --product "Red Hat OpenStack" --organization "Default Organization" --name "Red Hat OpenStack 6.0 for RHEL 7 (RPMs)" --releasever=7Server --basearch=x86_64
+hammer repository-set enable --product "Red Hat Enterprise Linux Server" --organization "Default Organization" --name "Red Hat Enterprise Linux 7 Server (Kickstart)" --releasever=7.1 --basearch=x86_64
+```
+Verify that the repositories are enabled with:
 
+```
+# hammer repository list --organization "Default Organization"
+---|-------------------------------------------------------------------|---------------------------------|--------------|---------------------------------------------------------------------------------
+ID | NAME                                                              | PRODUCT                         | CONTENT TYPE | URL                                                                             
+---|-------------------------------------------------------------------|---------------------------------|--------------|---------------------------------------------------------------------------------
+4  | Red Hat Enterprise Linux 7 Server Kickstart x86_64 7.1            | Red Hat Enterprise Linux Server | yum          | https://cdn.redhat.com/content/dist/rhel/server/7/7.1/x86_64/kickstart          
+2  | Red Hat Enterprise Linux 7 Server - RH Common RPMs x86_64 7Server | Red Hat Enterprise Linux Server | yum          | https://cdn.redhat.com/content/dist/rhel/server/7/7Server/x86_64/rh-common/os   
+1  | Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server             | Red Hat Enterprise Linux Server | yum          | https://cdn.redhat.com/content/dist/rhel/server/7/7Server/x86_64/os             
+3  | Red Hat OpenStack 6.0 for RHEL 7 RPMs x86_64 7Server              | Red Hat OpenStack               | yum          | https://cdn.redhat.com/content/dist/rhel/server/7/7Server/x86_64/openstack/6....
+---|-------------------------------------------------------------------|---------------------------------|--------------|---------------------------------------------------------------------------------
+```
 
 ### Sync Content from the Red Hat Network
 
@@ -145,9 +169,18 @@ For Red Hat Repositories or any custom Repositories with an external url defined
 Sync the following repositories:
 
 * "Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server"
-* "RHN Tools for Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server"
-* "Red Hat OpenStack 6.0 for RHEL 7 RPMs x86_64 7Server"
 * "Red Hat Enterprise Linux 7 Server - RH Common RPMs x86_64 7Server"
+* "Red Hat OpenStack 6.0 for RHEL 7 RPMs x86_64 7Server"
+* "Red Hat Enterprise Linux 7 Server Kickstart x86_64 7.1"
+
+From the command line:
+
+```
+hammer repository synchronize --product "Red Hat Enterprise Linux Server" --name "Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server" --organization "Default Organization"
+hammer repository synchronize --product "Red Hat Enterprise Linux Server" --name "Red Hat Enterprise Linux 7 Server - RH Common RPMs x86_64 7Server" --organization "Default Organization"
+hammer repository synchronize --product "Red Hat OpenStack" --name "Red Hat OpenStack 6.0 for RHEL 7 RPMs x86_64 7Server" --organization "Default Organization"
+hammer repository synchronize --product "Red Hat Enterprise Linux Server" --name "Red Hat Enterprise Linux 7 Server Kickstart x86_64 7.1" --organization "Default Organization"
+```
 
 ### Import the OpenStack Puppet modules
 
@@ -206,7 +239,7 @@ Next, upload the supporting OpenStack puppet modules from StackForge:
 ```
 git clone https://github.com/msolberg/openstack-puppet-modules -b satellite6_compat
 mkdir -p /openstack-modules
-pulp-puppet-module-builder --output-dir=/openstack-modules openstack-puppet-modules
+pulp-puppet-module-builder --output-dir=/openstack-modules openstack-puppet-modules --branch=satellite6_compat
 hammer repository upload-content --name='Puppet Modules'  --path=/openstack-modules/ --organization='Default Organization' --product='OpenStack Configuration'
 ```
 
