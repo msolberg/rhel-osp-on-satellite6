@@ -24,11 +24,11 @@ with customizations to manage OpenStack using Satellite.
 
 ## Puppet Modules
 
-This reference architecture uses two upstream Puppet modules to deploy
-Red Hat Enterprise Linux OpenStack Platform. 
+This reference architecture uses upstream Puppet modules from the
+following repository to deploy Red Hat Enterprise Linux OpenStack
+Platform.
 
-1. OpenStack Puppet Modules: Puppet modules shared between Packstack and Foreman (https://github.com/redhat-openstack/openstack-puppet-modules).
-2. Astapor: Configurations to set up foreman quickly, install openstack puppet modules and rapidly provision openstack compute & controller nodes with puppet (https://github.com/redhat-openstack/astapor).
+1. Astapor: Configurations to set up foreman quickly, install openstack puppet modules and rapidly provision openstack compute & controller nodes with puppet (https://github.com/redhat-openstack/astapor).
 
 Though these modules are developed upstream by Red Hat and the Open
 Source community the modules themselves are not directly supported by
@@ -37,7 +37,7 @@ reference architecture.
 
 ## Workflow 
 
-Do we want to add the CICD workflow description here?
+TODO
 
 ## Satellite 6 Installation
 
@@ -47,7 +47,7 @@ Install Satellite 6.1 or greater as per the Satellite 6 Installation Guide (http
 
 ### Create Lifecycle Environments
 
-We will use a Life Cycle pattern which promomotes from Library to Development to Production.
+We will use a Life Cycle pattern which promotes from Library to Development to Production.
 
 In the Foreman UI, use the following steps to create two lifecycle environments for our OpenStack deployments.
 
@@ -66,7 +66,7 @@ hammer lifecycle-environment create --organization='Default Organization' --name
 hammer lifecycle-environment create --organization='Default Organization' --name=Production --prior=Development
 ```
 
-> **Pro-tip** 
+> **Pro Tip** 
 > The hammer CLI will prompt you for your username and password each
 > time you run a command.  Alternatively, you can copy
 > /etc/hammer/cli_config.hml to ~/.hammer/cli_config.yml and specify
@@ -219,6 +219,28 @@ From the CLI:
 hammer repository create --organization='Default Organization' --product='OpenStack Configuration' --name='Puppet Modules' --content-type=puppet
 ```
 
+Verify that the product and repository were created with the following command:
+
+```
+# hammer product info --name "OpenStack Configuration" --organization "Default Organization"
+ID:           108
+Name:         OpenStack Configuration
+Label:        OpenStack_Configuration
+Description:  
+Sync State:   not_synced
+Sync Plan ID: 
+GPG:          
+    GPG Key ID: 
+    GPG Key:
+Organization: Default Organization
+Readonly:     false
+Deletable:    
+Content:      
+ 1) Repo Name:    Puppet Modules
+    URL:          /custom/OpenStack_Configuration/Puppet_Modules
+    Content Type: puppet
+```
+
 Next, import the quickstack puppet module from github.
 
 Use the `pulp-puppet-module-builder` utility from the CLI to create an uploadable format from the git repository:
@@ -231,16 +253,59 @@ pulp-puppet-module-builder --output-dir=/modules --url=https://github.com/msolbe
 Then, upload the resulting module to the OpenStack Configuration product.
 
 ```
-hammer repository upload-content --name='Puppet Modules'  --path=/modules/redhat-quickstack-3.0.24.tar.gz --organization='Default Organization' --product='OpenStack Configuration'
+hammer repository upload-content --name='Puppet Modules'  --path=/modules/redhat-quickstack-*.tar.gz --organization='Default Organization' --product='OpenStack Configuration'
 ```
 
-Next, upload the supporting OpenStack puppet modules from StackForge:
+Next, we'll install the openstack-puppet-modules RPM on the Satellite
+server.
+
+Download the latest openstack-puppet-modules RPM for RHEL-OSP 6 here:
+
+https://access.redhat.com/downloads/content/openstack-puppet-modules/2014.2.15-3.el7ost/noarch/fd431d51/package
+
+Copy the RPM package to your Satellite server and install it with the
+following command:
 
 ```
-git clone https://github.com/msolberg/openstack-puppet-modules -b satellite6_compat
-mkdir -p /openstack-modules
-pulp-puppet-module-builder --output-dir=/openstack-modules openstack-puppet-modules --branch=satellite6_compat
-hammer repository upload-content --name='Puppet Modules'  --path=/openstack-modules/ --organization='Default Organization' --product='OpenStack Configuration'
+yum localinstall openstack-puppet-modules-*.noarch.rpm
+```
+
+Verify that the package installed correctly with the following command:
+
+```
+# rpm -q openstack-puppet-modules
+openstack-puppet-modules-2014.2.15-3.el7ost.noarch
+```
+
+The puppet modules will be installed into
+`/usr/share/openstack-puppet/modules`.  Add this path to the base
+module path for the puppet master so that all environments on the
+Satellite have access to them.
+
+To update the base module path, edit `/etc/puppet/puppet.conf`.  Find
+the variable `basemodulepath` in the `master` section and add
+`/usr/share/openstack-puppet/modules` to it.  The resulting section
+should look like this:
+
+```
+[master]
+    autosign       = $confdir/autosign.conf { mode = 664 }
+    reports        = foreman
+    external_nodes = /etc/puppet/node.rb
+    node_terminus  = exec
+    ca             = true
+    ssldir         = /var/lib/puppet/ssl
+    certname       = <hostname>
+    strict_variables = false
+
+    environmentpath  = /etc/puppet/environments
+    basemodulepath   = /etc/puppet/environments/common:/etc/puppet/modules:/usr/share/puppet/modules:/usr/share/openstack-puppet/modules
+```
+
+Next, restart the httpd service so that the Puppet Master can pick up the new path:
+
+```
+service httpd restart
 ```
 
 ### Creating the OpenStack Content View
@@ -277,12 +342,6 @@ Add the Quickstack puppet module to the content view:
 2. Click "+ Add New Module".
 3. Click "Select a Version" next to the module named "quickstack".
 4. Select the "Use Latest" version.
-
-Follow the same procedure to import each of the StackForge puppet
-modules to the content view.  Use the "add_puppet_modules.sh" script
-to expedite the process.
-
-TODO:  This should all be scripted - there are 48 of these modules!
 
 Publish the version of the content view:
 
