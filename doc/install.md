@@ -44,10 +44,6 @@ Source community the modules themselves are not directly supported by
 Red Hat. For more infomation see the Support Statement of this
 reference architecture. 
 
-### Workflow 
-
-TODO
-
 ## Satellite 6 Installation
 
 Install Satellite 6.1 or greater as per the Satellite 6 Installation Guide (https://access.redhat.com/documentation/en-US/Red_Hat_Satellite/6.0/html/Installation_Guide/index.html). Before executing `yum install katello` make the changes described in the following knowledge base article (https://access.redhat.com/solutions/1450693). 
@@ -382,7 +378,7 @@ Publish the version of the content view:
 2. Optionally enter a comment in the description field.
 3. Click "Save"
 
-TODO:  Add CLI instructions.
+TODO: Add CLI instructions.
 
 ### Promote the OpenStack Content View
 
@@ -498,8 +494,6 @@ hammer location add-domain --domain=example.com --name='Default Location'
 
 From this point forward when referencing domains we will refer to example.com, but you should substitute your relevant domain.
 
-TODO:  Shouldn't we have a DNS capsule provisioned for this?
-
 ### Creating the OpenStack Subnets
 
 A Subnet in Satellite 6 is the definition of your actual network
@@ -576,6 +570,8 @@ Create the Controller Host Group:
 5. Click "Reset Puppet Environment to match selected Content View" next to Puppet Environment. 
 6. Select the hostname for your Satellite server for the "Content Source", "Puppet CA", and "Puppet Master".
 
+Then add Puppet classes to the host group:
+
 1. Click on the "Puppet Classes" tab.
 2. Search for "quickstack" in the list of Available Classes.
 3. Use the "+" button to add the following classes:
@@ -596,10 +592,14 @@ Create the Controller Host Group:
   * quickstack::pacemaker::galera
   * quickstack::pacemaker::neutron
 
+Then, specify network settings for the host group:
+
 1. Click on the "Network" tab.
 2. Select the Management domain (e.g. "mgt.example.com") for Domain.
 3. Select "OpenStack Management" for the Subnet.
 4. The Realm field can be left blank 
+
+Select an Operating System for the host group:
 
 1. Click on the "Operating System" tab.
 2. Select "x86_64" for the Architecture.
@@ -608,10 +608,12 @@ Create the Controller Host Group:
 5. Select "Kickstart default" for the Partition table.
 6. Enter a password for the root user.
 
-TODO: Looks like you can set at least some of the parameters at this point.
+Make the host group available in the default location: 
 
 1. Click on the "Locations" tab.
 2. Click on "Default Location" to move it to the "Selected items" control.
+
+Add an activation key to the host group:
 
 1. Click on the "Activation Keys tab.
 2. Enter "OpenStack_Dev" for activation keys.
@@ -627,15 +629,21 @@ Create the Compute Host Group:
 5. Click "Reset Puppet Environment to match selected Content View" next to Puppet Environment. 
 6. Select the hostname for your Satellite server for the "Content Source", "Puppet CA", and "Puppet Master".
 
+Then add Puppet classes to the host group:
+
 1. Click on the "Puppet Classes" tab.
 2. Search for "quickstack" in the list of Available Classes.
 3. Use the "+" button to add the following classes:
   * quickstack::neutron::compute
 
+Then, specify network settings for the host group:
+
 1. Click on the "Network" tab.
 2. Select the Management domain (e.g. "mgt.example.com") for Domain.
 3. Select "OpenStack Management" for the Subnet.
 4. The Realm field can be left blank 
+
+Select an Operating System for the host group:
 
 1. Click on the "Operating System" tab.
 2. Select "x86_64" for the Architecture.
@@ -644,10 +652,12 @@ Create the Compute Host Group:
 5. Select "Kickstart default" for the Partition table.
 6. Enter a password for the root user.
 
-TODO: Looks like you can set at least some of the parameters at this point.
+Make the host group available in the default location: 
 
 1. Click on the "Locations" tab.
 2. Click on "Default Location" to move it to the "Selected items" control.
+
+Add an activation key to the host group:
 
 1. Click on the "Activation Keys" tab.
 2. Enter "OpenStack_Dev" for activation keys.
@@ -724,7 +734,7 @@ Have the script set the parameters in Satellite using hammer.
 We are now ready to apply our work from the previous sections to
 deploy OpenStack on a set of servers. 
 
-### Discover your Severs
+### Discover your Servers
 
 Satellite can discover a set of servers when they are turned on, 
 provided that they are configured to PXE boot and are connected to
