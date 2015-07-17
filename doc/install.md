@@ -5,13 +5,13 @@
 This document serves as a guide on how to deploy and manage RHEL-OSP
 with Red Hat Satellite.
 
-## Document Conventions
+### Document Conventions
 
 This guide will present each step with instructions for both the
 Graphical User interface and the Command Line interface where
 possible.
 
-## Support Statement
+### Support Statement
 
 This reference architecture describes a supported Red Hat Enterprise
 Linux OpenStack Platform 7 installation and a supported Satellite 6.1 
@@ -20,22 +20,31 @@ products, the resulting OpenStack is supported as well as Satellite 6,
 but the Puppet code itself used to deploy OpenStack is not directly
 supported. The intention of this reference architecture is provide an 
 example for an organization that wishes to maintain its own Puppet
-with customizations to manage OpenStack using Satellite. 
+with customizations to manage OpenStack using Satellite. See
+How does Red Hat support scripting frameworks?
+(https://access.redhat.com/articles/369183) for more information. 
 
-## Puppet Modules
+### Puppet Modules
 
 This reference architecture uses upstream Puppet modules from the
 following repository to deploy Red Hat Enterprise Linux OpenStack
 Platform.
 
-1. Astapor: Configurations to set up foreman quickly, install openstack puppet modules and rapidly provision openstack compute & controller nodes with puppet (https://github.com/redhat-openstack/astapor).
+1. OpenStack Puppet Modules: Puppet modules shared between Packstack
+and Foreman
+(https://github.com/redhat-openstack/openstack-puppet-modules). 
+
+2. Astapor Quickstack: Configurations to set up foreman quickly, install
+openstack puppet modules and rapidly provision openstack
+compute & controller nodes with puppet
+(https://github.com/redhat-openstack/astapor).
 
 Though these modules are developed upstream by Red Hat and the Open
 Source community the modules themselves are not directly supported by
 Red Hat. For more infomation see the Support Statement of this
 reference architecture. 
 
-## Workflow 
+### Workflow 
 
 TODO
 
@@ -49,7 +58,7 @@ Install Satellite 6.1 or greater as per the Satellite 6 Installation Guide (http
 
 We will use a Life Cycle pattern which promotes from Library to Development to Production.
 
-In the Foreman UI, use the following steps to create two lifecycle environments for our OpenStack deployments.
+In the Satellite UI, use the following steps to create two lifecycle environments for our OpenStack deployments.
 
 1. Navigate to Content > Lifecycle Environments
 4. Click “+ New Environment Path” above the "Library" environment
@@ -120,19 +129,16 @@ Network to your Red Hat Satellite.
 
 1. Navigate to Content > Red Hat Repositories.
 2. Expand the “Red Hat Enterprise Linux Server” Product. 
-3. Select the “Red Hat Enterprise Linux 7 Server (RPMs)” Repository Set underneath the Product. (This may take a few moments). Within that Repository Set:
-   b. Select the "Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server" repository.
-5. Select the "Red Hat Enterprise Linux 7 Server - RH Common (RPMs)"
-   a. Select the "Red Hat Enterprise Linux 7 Server - RH Common RPMs x86_64 7Server" repository.
+3. Select the “Red Hat Enterprise Linux 7 Server (RPMs)” Repository Set underneath the Product. (This may take a few moments). Within that Repository Set select the "Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server" repository.
+4. Select the "Red Hat Enterprise Linux 7 Server - RH Common (RPMs)". Within that Repository Set select the "Red Hat Enterprise Linux 7 Server - RH Common RPMs x86_64 7Server" repository.
 5. Select the "Red Hat OpenStack" Product.
-6. Select the "Red Hat OpenStack 6.0 for RHEL 7 (RPMs)" Repository Set. Within that Repository Set:
-   b. Select the "Red Hat OpenStack 6.0 for RHEL 7 RPMs x86_64 7Server" repository. 
+6. Select the "Red Hat OpenStack 7.0 for RHEL 7 (RPMs)" Repository Set. Within that Repository Set select the "Red Hat OpenStack 7.0 for RHEL 7 RPMs x86_64 7Server" repository. 
 
 In order to kickstart systems from the Satellite server, a kickstart tree needs to be synced. 
 
 1. On the same page (Content > Red Hat Repositories) click the "Kickstarts" tab. 
 2. Select the "Red Hat Enterprise Linux Server" Product. 
-3. Select the "Red Hat Enterprise Linux 7 Server (Kickstart)" Repository Set.  
+3. Select the "Red Hat Enterprise Linux 7 Server (Kickstart)" Repository Set.
 4. Select the desired kickstart tree "Red Hat Enterprise Linux 7 Server Kickstart x86_64 7.1"
 
 To perform the same actions from the command line:
@@ -140,7 +146,7 @@ To perform the same actions from the command line:
 ```
 hammer repository-set enable --product "Red Hat Enterprise Linux Server" --organization "Default Organization" --name "Red Hat Enterprise Linux 7 Server (RPMs)" --releasever=7Server --basearch=x86_64
 hammer repository-set enable --product "Red Hat Enterprise Linux Server" --organization "Default Organization" --name "Red Hat Enterprise Linux 7 Server - RH Common (RPMs)" --releasever=7Server --basearch=x86_64
-hammer repository-set enable --product "Red Hat OpenStack" --organization "Default Organization" --name "Red Hat OpenStack 6.0 for RHEL 7 (RPMs)" --releasever=7Server --basearch=x86_64
+hammer repository-set enable --product "Red Hat OpenStack" --organization "Default Organization" --name "Red Hat OpenStack 7.0 for RHEL 7 (RPMs)" --releasever=7Server --basearch=x86_64
 hammer repository-set enable --product "Red Hat Enterprise Linux Server" --organization "Default Organization" --name "Red Hat Enterprise Linux 7 Server (Kickstart)" --releasever=7.1 --basearch=x86_64
 ```
 Verify that the repositories are enabled with:
@@ -153,7 +159,7 @@ ID | NAME                                                              | PRODUCT
 4  | Red Hat Enterprise Linux 7 Server Kickstart x86_64 7.1            | Red Hat Enterprise Linux Server | yum          | https://cdn.redhat.com/content/dist/rhel/server/7/7.1/x86_64/kickstart          
 2  | Red Hat Enterprise Linux 7 Server - RH Common RPMs x86_64 7Server | Red Hat Enterprise Linux Server | yum          | https://cdn.redhat.com/content/dist/rhel/server/7/7Server/x86_64/rh-common/os   
 1  | Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server             | Red Hat Enterprise Linux Server | yum          | https://cdn.redhat.com/content/dist/rhel/server/7/7Server/x86_64/os             
-3  | Red Hat OpenStack 6.0 for RHEL 7 RPMs x86_64 7Server              | Red Hat OpenStack               | yum          | https://cdn.redhat.com/content/dist/rhel/server/7/7Server/x86_64/openstack/6....
+3  | Red Hat OpenStack 7.0 for RHEL 7 RPMs x86_64 7Server              | Red Hat OpenStack               | yum          | https://cdn.redhat.com/content/dist/rhel/server/7/7Server/x86_64/openstack/7....
 ---|-------------------------------------------------------------------|---------------------------------|--------------|---------------------------------------------------------------------------------
 ```
 
@@ -170,7 +176,7 @@ Sync the following repositories:
 
 * "Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server"
 * "Red Hat Enterprise Linux 7 Server - RH Common RPMs x86_64 7Server"
-* "Red Hat OpenStack 6.0 for RHEL 7 RPMs x86_64 7Server"
+* "Red Hat OpenStack 7.0 for RHEL 7 RPMs x86_64 7Server"
 * "Red Hat Enterprise Linux 7 Server Kickstart x86_64 7.1"
 
 From the command line:
@@ -178,7 +184,7 @@ From the command line:
 ```
 hammer repository synchronize --product "Red Hat Enterprise Linux Server" --name "Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server" --organization "Default Organization"
 hammer repository synchronize --product "Red Hat Enterprise Linux Server" --name "Red Hat Enterprise Linux 7 Server - RH Common RPMs x86_64 7Server" --organization "Default Organization"
-hammer repository synchronize --product "Red Hat OpenStack" --name "Red Hat OpenStack 6.0 for RHEL 7 RPMs x86_64 7Server" --organization "Default Organization"
+hammer repository synchronize --product "Red Hat OpenStack" --name "Red Hat OpenStack 7.0 for RHEL 7 RPMs x86_64 7Server" --organization "Default Organization"
 hammer repository synchronize --product "Red Hat Enterprise Linux Server" --name "Red Hat Enterprise Linux 7 Server Kickstart x86_64 7.1" --organization "Default Organization"
 ```
 
@@ -331,7 +337,7 @@ Then, add the required RPM repositories to the content view:
 4. Select the following repositories to the Content View:
   * Red Hat Enterprise Linux 7 Server Kickstart x86_64 7.1
   * Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server
-  * Red Hat OpenStack 6.0 for RHEL 7 RPMs x86_64 7Server
+  * Red Hat OpenStack 7.0 for RHEL 7 RPMs x86_64 7Server
   * RHN Tools for Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server
   * Red Hat Enterprise Linux 7 Server - RH Common RPMs x86_64 7Server
 5. Click "+ Add Repositories"
@@ -377,7 +383,7 @@ To create an Activation Key:
 3. Give the name of the activation key “OpenStack_Dev”
 4. Select the “Development” environment.
 5. Select the "OpenStack" Content View from the drop down.
-6. Click Save
+6. Click "Save"
 7. Click Subscriptions and then click "Add"
 8. Select the desired Red Hat subscriptions which include access to the “Red Hat Enterprise Linux Server OpenStack Platform” Product.
 9. Select the "OpenStack Configuration" Product.
@@ -387,9 +393,11 @@ TODO: Add CLI instructions.
 
 ## Provisioning Configuration
 
-### Associate iPXE Template
+### Associate iPXE Template (only if required)
 
-TODO: msolberg and jfulton didn't have to do this.  Maybe this is fixed in 6.1?
+Prior to Satellite 6.1 it was necessary to associate an iPXE Template
+with an operating system. The following steps described this but may
+not be necessary. 
 
 The Satellite 6 Bootdisk uses iPXE to simulate a PXE environment and
 boot the machine. We need to configure the iPXE templates for our
@@ -523,7 +531,7 @@ hammer organization add-subnet --subnet="OpenStack External" --name='Default Org
 hammer location add-subnet --subnet=mysubnet --name='Default Location'
 ```
 
-### Creating the OpenStack Host Groups.
+### Creating the OpenStack Host Groups
 
 Host Groups are a sort of template that bring together a kickstart
 template, puppet classes, content view, and environment to build an
@@ -614,8 +622,144 @@ TODO: Looks like you can set at least some of the parameters at this point.
 1. Click on the "Locations" tab.
 2. Click on "Default Location" to move it to the "Selected items" control.
 
-1. Click on the "Activation Keys tab.
+1. Click on the "Activation Keys" tab.
 2. Enter "OpenStack_Dev" for activation keys.
 
 Click "Submit" to save your Compute Host Group.
 
+You may wish to create other OpenStack hosts groups using the pattern
+described above. 
+
+### Setting the OpenStack Host Parameters
+
+The parameters for the Puppet classes imported previously can be set
+by modifying a configuration file and having a shell script parse the
+configuration file and set the parameters in Satellite using hammer.
+The script and configuration file can be accessed with the following: 
+
+* https://github.com/msolberg/rhel-osp-on-satellite6/blob/master/conf/quickstack.conf
+* https://github.com/msolberg/rhel-osp-on-satellite6/blob/master/scripts/configure_quickstack.sh
+
+Download the resources above to your Satellite server. 
+
+#### Modify quickstack.conf
+* Enable or disable the desired components by setting them to true or
+  false. For example:
+```
+quickstack::pacemaker::params::include_ceilometer           = 'false'
+quickstack::pacemaker::params::include_cinder               = 'true'
+```
+* Set the VIPs to suit the desired IPs within the desired network.
+Note that the provided example file assumes the public and private API
+VIPs are the same. If you are isolating your private API VIPs, then set
+the IPs to a different network. For example:
+```
+quickstack::pacemaker::params::keystone_public_vip          = '10.1.1.47'
+quickstack::pacemaker::params::keystone_private_vip         = '172.16.1.47'
+quickstack::pacemaker::params::keystone_admin_vip           = '172.16.1.47'
+```
+* Set the passwords. You could use a script to set them to random values.
+* Enable or disable Ceph and modify the XFS options if necessary.
+```
+quickstack::pacemaker::params::ceph_osd_mkfs_options_xfs    = '-f -i size=2048 -n size=64k'
+quickstack::pacemaker::params::ceph_osd_mount_options_xfs   = '-o inode64,noatime,logbsize=256k'
+```
+* If necessary, change the group names. 
+* Set the load balancer variables. 
+```
+quickstack::pacemaker::params::loadbalancer_group           = 'loadbalancer'
+quickstack::pacemaker::params::lb_backend_server_names      = [testbox.mgt.example.com]
+quickstack::pacemaker::params::lb_backend_server_addrs      = [10.1.1.20]
+```
+* Set the pacemaker variables. 
+```
+quickstack::pacemaker::params::pcmk_server_names            = [testbox.mgt.example.com]
+quickstack::pacemaker::params::pcmk_server_addrs            = [10.1.1.20]
+quickstack::pacemaker::params::pcmk_iface                   = 'eth0'
+quickstack::pacemaker::params::pcmk_network                 = '10.1.1.0/24'
+```
+For more information about what any of the above parameters do, you
+can read the Puppet that uses them at
+https://github.com/redhat-openstack/astapor/.
+
+#### Modify configure_quickstack.sh
+* Set the USERNAME variable to the username of a user that can execute hammer.
+* Set the PASSWORD variable to the password of a user that can execute hammer.
+
+#### Execute configure_quickstack.sh
+Have the script set the parameters in Satellite using hammer. 
+```
+./configure_quickstack.sh quickstack_icehouse.conf
+```
+
+## Deploy OpenStack 
+
+We are now ready to apply our work from the previous sections to
+deploy OpenStack on a set of servers. 
+
+### Discover your Severs
+
+Satellite can discover a set of servers when they are turned on, 
+provided that they are configured to PXE boot and are connected to
+a network from which Satellite can provision them. Configure
+Satellite's Metal-as-a-Service (MaaS) feature as described in Chapter
+13, Using the Foreman Discovery Plug-in, of the Satellite User Guide;
+which can be accessed from
+https://access.redhat.com/documentation/en-US/Red_Hat_Satellite.
+After your servers are discovered they should register their Facts
+with the Satellite server. 
+
+### Move your servers into the appropriate host groups
+
+In the Satellite UI, use the following steps to move your servers into
+the appropriate host groups. 
+
+1. Navigate to Hosts > Discovered Hosts
+2. Select a set of servers to be your controller nodes. Select a
+   minimum of three for a highly available control plane. 
+3. Using the "Select Action" menu on the right, select "Change Group"
+4. A dialogue box should appear with a list of the seclected servers
+   as well as the host groups that were defined earlier. Select the 
+   "OpenStack Controller" host group.
+5. Click Submit. You should see a confirmation appear that says
+   "Updated hosts. Changed host group". 
+6. Select a set of servers to be your compute nodes.
+7. Using the "Select Action" menu on the right, select "Change Group"
+8. A dialogue box should appear with a list of the seclected servers
+   as well as the host groups that were defined earlier. Select the 
+   "OpenStack Compute" host group.
+9. Click Submit. You should see a confirmation appear that says
+   "Updated hosts. Changed host group". 
+
+If you created other OpenStack hosts groups, then add your hosts to
+them accordingly. 
+
+### Build them
+
+In the Satellite UI, use the following steps to install Red Hat
+Enterprise Linux 7 and Red Hat Enterprise Linux OpenStack Platform 7
+on your servers. 
+
+1. Navigate to Hosts > All Hosts
+2. Select a set of servers the OpenStack Controllers Host group
+3. Using the "Select Action" menu on the right, select "Build Hosts"
+4. A dialogue box should appear with a list of the seclected servers
+   asking you to confirm you want to "Provision these hosts for a
+   build operation on next boot". Click Submit. 
+5. Click Submit. You should see a confirmation appear that says
+   "The selected hosts will execute a build operation on next reboot".
+6. Select a set of servers the OpenStack Compute Host group
+7. Using the "Select Action" menu on the right, select "Build Hosts"
+8. A dialogue box should appear with a list of the seclected servers
+   asking you to confirm you want to "Provision these hosts for a
+   build operation on next boot". Click Submit. 
+9. Click Submit. You should see a confirmation appear that says
+   "The selected hosts will execute a build operation on next reboot".
+
+If you assigned other hosts to other OpenStack host groups, then
+build your hosts accordingly. 
+
+Your servers should reboot, have their operating system installed and
+then Puppet should configure them in their appropriate role within the
+OpenStack Cloud. After your servers are built you should connect to
+your controller nodes via HTTP or SSH and test your OpenStack Cloud. 
