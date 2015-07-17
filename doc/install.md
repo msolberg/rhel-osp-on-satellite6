@@ -262,6 +262,33 @@ Then, upload the resulting module to the OpenStack Configuration product.
 hammer repository upload-content --name='Puppet Modules'  --path=/modules/redhat-quickstack-*.tar.gz --organization='Default Organization' --product='OpenStack Configuration'
 ```
 
+Verify that the module was uploaded with the following command:
+
+```
+# hammer repository info --name 'Puppet Modules' --organization 'Default Organi
+zation' --product 'OpenStack Configuration'
+ID:                 5
+Name:               Puppet Modules
+Label:              Puppet_Modules
+Organization:       Default Organization
+Red Hat Repository: no
+Content Type:       puppet
+URL:                
+Publish Via HTTP:   yes
+Published At:       http://satellite6.libvirt.localdomain/pulp/repos/Default_Organization/Library/custom/OpenStack_Configuration/Puppet_Modules
+Product:            
+    ID:   108
+    Name: OpenStack Configuration
+GPG Key:            
+
+Sync:               
+    Status:
+Created:            2015/07/07 20:00:05
+Updated:            2015/07/07 20:00:10
+Content Counts:     
+    Puppet Modules: 1
+```
+
 Next, we'll install the openstack-puppet-modules RPM on the Satellite
 server.
 
@@ -689,7 +716,7 @@ https://github.com/redhat-openstack/astapor/.
 #### Execute configure_quickstack.sh
 Have the script set the parameters in Satellite using hammer. 
 ```
-./configure_quickstack.sh quickstack_icehouse.conf
+./configure_quickstack.sh quickstack.conf
 ```
 
 ## Deploy OpenStack 
