@@ -46,7 +46,7 @@ reference architecture.
 
 ## Satellite 6 Installation
 
-Install Satellite 6.1 or greater as per the Satellite 6 Installation Guide (https://access.redhat.com/documentation/en-US/Red_Hat_Satellite/6.0/html/Installation_Guide/index.html). Before executing `yum install katello` make the changes described in the following knowledge base article (https://access.redhat.com/solutions/1450693). 
+Install Satellite 6.1 or greater as per the Satellite 6 Installation Guide (https://access.redhat.com/documentation/en-US/Red_Hat_Satellite/6.1/html/Installation_Guide/index.html).
 
 ## Preparing Content for OpenStack Deployment
 
@@ -74,7 +74,7 @@ hammer lifecycle-environment create --organization='Default Organization' --name
 > **Pro Tip** 
 > The hammer CLI will prompt you for your username and password each
 > time you run a command.  Alternatively, you can copy
-> /etc/hammer/cli_config.hml to ~/.hammer/cli_config.yml and specify
+> /etc/hammer/cli_config.yml to ~/.hammer/cli_config.yml and specify
 > a username and password there.
 
 Verify that the environment is set up as desired with:
@@ -106,7 +106,7 @@ To upload your manifest, simply login to your Satellite server and:
 From the command line: 
 
 ```
-hammer subscription upload file=/path/to/manifest.zip
+hammer subscription upload --file /path/to/manifest.zip --organization "Default Organization"
 ```
 
 Verify that the manifest was uploaded with:
@@ -288,9 +288,9 @@ Content Counts:
 Next, we'll install the openstack-puppet-modules RPM on the Satellite
 server.
 
-Download the latest openstack-puppet-modules RPM for RHEL-OSP 6 here:
+Download the latest openstack-puppet-modules RPM for RHEL-OSP 7 here:
 
-https://access.redhat.com/downloads/content/openstack-puppet-modules/2014.2.15-3.el7ost/noarch/fd431d51/package
+https://access.redhat.com/downloads/content/rhel---7/x86_64/4492/openstack-puppet-modules/2015.1.8-8.el7ost/noarch/fd431d51/package
 
 Copy the RPM package to your Satellite server and install it with the
 following command:
@@ -303,7 +303,7 @@ Verify that the package installed correctly with the following command:
 
 ```
 # rpm -q openstack-puppet-modules
-openstack-puppet-modules-2014.2.15-3.el7ost.noarch
+openstack-puppet-modules-2015.1.8-8.el7ost.noarch
 ```
 
 The puppet modules will be installed into
