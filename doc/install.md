@@ -249,13 +249,13 @@ Use the `pulp-puppet-module-builder` utility from the CLI to create an uploadabl
 
 ```
 mkdir /modules
-pulp-puppet-module-builder --output-dir=/modules --url=https://github.com/msolberg/astapor/ -p astapor/puppet/modules/quickstack --branch=satellite6_compat
+pulp-puppet-module-builder --output-dir=/modules --url=https://github.com/msolberg/astapor/ -p astapor/puppet/modules/quickstack
 ```
 
 Then, upload the resulting module to the OpenStack Configuration product.
 
 ```
-hammer repository upload-content --name='Puppet Modules'  --path=/modules/redhat-quickstack-*.tar.gz --organization='Default Organization' --product='OpenStack Configuration'
+hammer repository upload-content --name 'Puppet Modules'  --path /modules/redhat-quickstack-*.tar.gz --organization 'Default Organization' --product 'OpenStack Configuration'
 ```
 
 Verify that the module was uploaded with the following command:
@@ -415,41 +415,6 @@ To create an Activation Key:
 TODO: Add CLI instructions.
 
 ## Provisioning Configuration
-
-### Associate iPXE Template (only if required)
-
-Prior to Satellite 6.1 it was necessary to associate an iPXE Template
-with an operating system. The following steps described this but may
-not be necessary. 
-
-The Satellite 6 Bootdisk uses iPXE to simulate a PXE environment and
-boot the machine. We need to configure the iPXE templates for our
-specific Operating System.
-
-1. Navigate to Hosts > Provisioning Templates.
-2. Select "Kickstart default iPXE".
-3. Select the "Association Tab".
-4. Select "RHEL Server 7.1" in the "Applicable Operating Systems" table.
-5. Click 'Submit'.
-6. Navigate to Hosts > Operating Systems.
-7. Select "RHEL Server 7.1".
-8. Select the "Templates" tab.
-9. In the iPXE dropdown choose "Kickstart default iPXE".
-
-From the CLI:
-First lookup the operating system ID:
-
-```
-hammer os list
-```
-
-And then associate the OS with the correct template (replacing n with the correct operating system id):
-
-```
-hammer template add-operatingsystem --name='Kickstart default iPXE' --
-operatingsystem-id=2
-hammer os add-config-template --id=n --config-template="Kickstart default iPXE"
-```
 
 ### Creating the OpenStack Domains
 
