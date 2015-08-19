@@ -556,6 +556,8 @@ Then add Puppet classes to the host group:
   * quickstack::pacemaker::horizon
   * quickstack::pacemaker::galera
   * quickstack::pacemaker::neutron
+  * quickstack::pacemaker::nosql
+  * quickstack::pacemaker::ceilometer
 
 Then, specify network settings for the host group:
 
